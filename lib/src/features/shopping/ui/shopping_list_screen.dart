@@ -63,7 +63,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                             Text('Comprado ${item.purchaseCount} vezes'),
                             if (item.price != null)
                               Text(
-                                  'Preço: R\$ ${item.price!.toStringAsFixed(2)}'),
+                                'Preço: R\$ ${item.price!.toStringAsFixed(2)} por ${item.priceType}',
+                              ),
                             if (item.isUrgent)
                               const Text(
                                 'Urgente',
