@@ -11,7 +11,8 @@ class AddItemWidget extends ConsumerStatefulWidget {
 }
 
 class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
-  TextEditingController itemController = TextEditingController();
+  final _itemControllerEC = TextEditingController();
+  final _priceControllerEC = TextEditingController();
   String selectedCategory = 'Hortifruti';
 
   @override
@@ -19,10 +20,17 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
     return Column(
       children: [
         TextField(
-          controller: itemController,
+          controller: _itemControllerEC,
           decoration: const InputDecoration(
             labelText: 'Novo item',
           ),
+        ),
+        TextField(
+          controller: _priceControllerEC,
+          decoration: const InputDecoration(
+            labelText: 'Preço do Item',
+          ),
+          keyboardType: TextInputType.number,
         ),
         DropdownButton<String>(
           value: selectedCategory,
@@ -44,14 +52,19 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
         ),
         ElevatedButton(
           onPressed: () {
-            final newItemName = itemController.text.trim();
+            final newItemName = _itemControllerEC.text.trim();
+            final newItemPrice =
+                double.tryParse(_priceControllerEC.text.trim()) ?? 0.0;
+
             if (newItemName.isNotEmpty) {
               final newItem = ShoppingItem(
                 name: newItemName,
                 category: selectedCategory,
+                price: newItemPrice,
               );
               ref.read(shoppingListProvider.notifier).addItem(newItem);
-              itemController.clear();
+              _itemControllerEC.clear();
+              _priceControllerEC.clear(); // Limpar o campo de preço
               setState(() {
                 selectedCategory = 'Hortifruti';
               });
