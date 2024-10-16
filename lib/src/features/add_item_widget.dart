@@ -1,34 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../entities/shopping_item_entitie.dart';
+import '../features/shopping/state/shopping_list_state.dart';
 
-import '../features/shopping/state/suggested_items_state.dart';
-import 'shopping/state/shopping_list_state.dart';
-
-class AddItemWidget extends ConsumerWidget {
+class AddItemWidget extends ConsumerStatefulWidget {
   const AddItemWidget({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    TextEditingController itemController = TextEditingController();
+  _AddItemWidgetState createState() => _AddItemWidgetState();
+}
 
-    return TextField(
-      controller: itemController,
-      decoration: InputDecoration(
-        labelText: 'Novo item',
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-            final newItem = itemController.text.trim();
-            if (newItem.isNotEmpty) {
-              ref.read(shoppingListProvider.notifier).addItem(newItem);
-              ref
-                  .read(suggestedItemsProvider.notifier)
-                  .addSuggestedItem(newItem);
-              itemController.clear();
+class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
+  TextEditingController itemController = TextEditingController();
+  String selectedCategory = 'Hortifruti';
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          controller: itemController,
+          decoration: const InputDecoration(
+            labelText: 'Novo item',
+          ),
+        ),
+        DropdownButton<String>(
+          value: selectedCategory,
+          items: ['Hortifruti', 'Laticínios', 'Limpeza', 'Outros']
+              .map(
+                (category) => DropdownMenuItem(
+                  value: category,
+                  child: Text(category),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                selectedCategory = value;
+              });
             }
           },
         ),
-      ),
+        ElevatedButton(
+          onPressed: () {
+            final newItemName = itemController.text.trim();
+            if (newItemName.isNotEmpty) {
+              final newItem = ShoppingItem(
+                name: newItemName,
+                category: selectedCategory,
+              );
+              ref.read(shoppingListProvider.notifier).addItem(newItem);
+              itemController.clear();
+              setState(() {
+                selectedCategory = 'Hortifruti';
+              });
+            }
+          },
+          child: const Text('Adicionar Item'),
+        ),
+      ],
     );
   }
 }
