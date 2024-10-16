@@ -4,6 +4,7 @@ class ShoppingItem {
   final bool isUrgent;
   final int purchaseCount;
   final double? price;
+  final String priceType; // Novo campo para tipo de preço
 
   ShoppingItem({
     required this.name,
@@ -11,6 +12,7 @@ class ShoppingItem {
     this.isUrgent = false,
     this.purchaseCount = 0,
     this.price,
+    required this.priceType,
   });
 
   ShoppingItem toggleUrgent() {
@@ -20,6 +22,7 @@ class ShoppingItem {
       isUrgent: !isUrgent,
       purchaseCount: purchaseCount,
       price: price,
+      priceType: priceType,
     );
   }
 
@@ -30,11 +33,12 @@ class ShoppingItem {
       isUrgent: isUrgent,
       purchaseCount: purchaseCount + 1,
       price: price,
+      priceType: priceType,
     );
   }
 
   String toSerializedString() {
-    return '$name::$category::$isUrgent::$purchaseCount::${price ?? 0.0}';
+    return '$name::$category::$isUrgent::$purchaseCount::${price ?? 0.0}::$priceType';
   }
 
   static ShoppingItem fromSerializedString(String serialized) {
@@ -45,6 +49,7 @@ class ShoppingItem {
       isUrgent: split[2] == 'true',
       purchaseCount: int.parse(split[3]),
       price: double.parse(split[4]),
+      priceType: split[5],
     );
   }
 }
