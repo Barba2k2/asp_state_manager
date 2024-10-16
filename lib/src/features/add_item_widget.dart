@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../entities/shopping_item_entitie.dart';
@@ -62,6 +64,7 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
               )
               .toList(),
           onChanged: (value) {
+            log('PriceL ${priceController.toString()}');
             if (value != null) {
               setState(() {
                 selectedPriceType = value;
