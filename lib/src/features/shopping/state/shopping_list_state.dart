@@ -1,20 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../entities/shopping_item_entitie.dart';
+import '../../../helper/database_helper.dart';
 
-// Estado da Lista de Compras
 class ShoppingListState {
   final List<ShoppingItem> items;
   ShoppingListState({this.items = const []});
 
   ShoppingListState addItem(ShoppingItem item) {
-    return ShoppingListState(items: [...items, item]);
+    return ShoppingListState(
+      items: [...items, item],
+    );
   }
 
   ShoppingListState removeItem(ShoppingItem item) {
     return ShoppingListState(
-        items: items.where((i) => i.name != item.name).toList());
+      items: items.where((i) => i.name != item.name).toList(),
+    );
+  }
+
+  ShoppingListState updateItem(ShoppingItem updatedItem) {
+    return ShoppingListState(
+      items: items
+          .map(
+            (i) => i.name == updatedItem.name ? updatedItem : i,
+          )
+          .toList(),
+    );
   }
 }
 
@@ -29,38 +41,30 @@ class ShoppingListNotifier extends StateNotifier<ShoppingListState> {
   }
 
   void addItem(ShoppingItem item) async {
-    state = state.addItem(item);
-    await _saveItems();
+    await DatabaseHelper().addItem(item);
+    _loadItems();
   }
 
   void removeItem(ShoppingItem item) async {
-    state = state.removeItem(item);
-    await _saveItems();
+    await DatabaseHelper().deleteItem(item.name);
+    _loadItems();
+  }
+
+  void toggleUrgentStatus(ShoppingItem item) async {
+    final updatedItem = item.toggleUrgent();
+    await DatabaseHelper().updateItem(updatedItem);
+    _loadItems();
+  }
+
+  void incrementPurchaseCount(ShoppingItem item) async {
+    final updatedItem = item.incrementPurchaseCount();
+    await DatabaseHelper().updateItem(updatedItem);
+    await DatabaseHelper().addPurchaseHistory(item.name);
+    _loadItems();
   }
 
   Future<void> _loadItems() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String>? items = prefs.getStringList('shopping_list');
-    if (items != null) {
-      final parsedItems = items.map(
-        (item) {
-          final split = item.split('::');
-          return ShoppingItem(name: split[0], category: split[1]);
-        },
-      ).toList();
-
-      state = ShoppingListState(items: parsedItems);
-    }
-  }
-
-  Future<void> _saveItems() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String> itemsToSave = state.items
-        .map(
-          (item) => '${item.name}::${item.category}',
-        )
-        .toList();
-
-    await prefs.setStringList('shopping_list', itemsToSave);
+    final items = await DatabaseHelper().getItems();
+    state = ShoppingListState(items: items);
   }
 }
