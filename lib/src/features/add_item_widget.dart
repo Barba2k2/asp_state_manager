@@ -11,22 +11,23 @@ class AddItemWidget extends ConsumerStatefulWidget {
 }
 
 class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
-  final _itemControllerEC = TextEditingController();
-  final _priceControllerEC = TextEditingController();
+  TextEditingController itemController = TextEditingController();
+  TextEditingController priceController = TextEditingController();
   String selectedCategory = 'Hortifruti';
+  String selectedPriceType = 'Unidade';
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextField(
-          controller: _itemControllerEC,
+          controller: itemController,
           decoration: const InputDecoration(
             labelText: 'Novo item',
           ),
         ),
         TextField(
-          controller: _priceControllerEC,
+          controller: priceController,
           decoration: const InputDecoration(
             labelText: 'Preço do Item',
           ),
@@ -50,23 +51,43 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
             }
           },
         ),
+        DropdownButton<String>(
+          value: selectedPriceType,
+          items: ['Unidade', 'Quilo', 'Bandeja', 'Litro']
+              .map(
+                (priceType) => DropdownMenuItem(
+                  value: priceType,
+                  child: Text(priceType),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                selectedPriceType = value;
+              });
+            }
+          },
+        ),
         ElevatedButton(
           onPressed: () {
-            final newItemName = _itemControllerEC.text.trim();
+            final newItemName = itemController.text.trim();
             final newItemPrice =
-                double.tryParse(_priceControllerEC.text.trim()) ?? 0.0;
+                double.tryParse(priceController.text.trim()) ?? 0.0;
 
             if (newItemName.isNotEmpty) {
               final newItem = ShoppingItem(
                 name: newItemName,
                 category: selectedCategory,
                 price: newItemPrice,
+                priceType: selectedPriceType,
               );
               ref.read(shoppingListProvider.notifier).addItem(newItem);
-              _itemControllerEC.clear();
-              _priceControllerEC.clear(); // Limpar o campo de preço
+              itemController.clear();
+              priceController.clear();
               setState(() {
                 selectedCategory = 'Hortifruti';
+                selectedPriceType = 'Unidade';
               });
             }
           },
