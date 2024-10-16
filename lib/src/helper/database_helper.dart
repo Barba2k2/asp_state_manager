@@ -1,6 +1,5 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../entities/shopping_item_entitie.dart';
 
 class DatabaseHelper {
@@ -23,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE shopping_items(
@@ -32,7 +31,8 @@ class DatabaseHelper {
             category TEXT,
             isUrgent INTEGER,
             purchaseCount INTEGER,
-            price REAL
+            price REAL,
+            priceType TEXT
           )
         ''');
         await db.execute('''
@@ -49,6 +49,12 @@ class DatabaseHelper {
           )
         ''');
       },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db
+              .execute('ALTER TABLE shopping_items ADD COLUMN priceType TEXT');
+        }
+      },
     );
   }
 
@@ -60,6 +66,7 @@ class DatabaseHelper {
       'isUrgent': item.isUrgent ? 1 : 0,
       'purchaseCount': item.purchaseCount,
       'price': item.price ?? 0.0,
+      'priceType': item.priceType,
     });
   }
 
@@ -74,6 +81,7 @@ class DatabaseHelper {
         isUrgent: maps[i]['isUrgent'] == 1,
         purchaseCount: maps[i]['purchaseCount'],
         price: maps[i]['price'],
+        priceType: maps[i]['priceType'],
       );
     });
   }
@@ -88,6 +96,7 @@ class DatabaseHelper {
         'isUrgent': item.isUrgent ? 1 : 0,
         'purchaseCount': item.purchaseCount,
         'price': item.price ?? 0.0,
+        'priceType': item.priceType,
       },
       where: 'name = ?',
       whereArgs: [item.name],
