@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../add_item_widget.dart';
-import '../state/purchased_items_state.dart';
 import '../state/shopping_list_state.dart';
 
 class ShoppingListScreen extends ConsumerStatefulWidget {
@@ -54,19 +53,56 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                   final item = shoppingList[index];
                   if (selectedCategoryFilter == 'Todos' ||
                       item.category == selectedCategoryFilter) {
-                    return ListTile(
-                      title: Text(item.name),
-                      subtitle: Text(item.category),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.check),
-                        onPressed: () {
-                          ref
-                              .read(shoppingListProvider.notifier)
-                              .removeItem(item);
-                          ref
-                              .read(purchasedItemsProvider.notifier)
-                              .addPurchasedItem(item.name);
-                        },
+                    return Card(
+                      child: ListTile(
+                        title: Text(item.name),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Categoria: ${item.category}'),
+                            Text('Comprado ${item.purchaseCount} vezes'),
+                            if (item.price != null)
+                              Text(
+                                  'Preço: R\$ ${item.price!.toStringAsFixed(2)}'),
+                            if (item.isUrgent)
+                              const Text(
+                                'Urgente',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                item.isUrgent
+                                    ? Icons.warning
+                                    : Icons.warning_outlined,
+                                color: item.isUrgent ? Colors.red : Colors.grey,
+                              ),
+                              onPressed: () {
+                                ref
+                                    .read(shoppingListProvider.notifier)
+                                    .toggleUrgentStatus(item);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.check),
+                              onPressed: () {
+                                ref
+                                    .read(shoppingListProvider.notifier)
+                                    .removeItem(item);
+                                ref
+                                    .read(shoppingListProvider.notifier)
+                                    .incrementPurchaseCount(item);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }
