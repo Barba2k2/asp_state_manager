@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../entities/shopping_item_entitie.dart';
-import '../../../helper/database_helper.dart';
+import '../../../domain/entities/shopping_item.dart';
+import '../../../data/datasources/database_helper.dart';
 
 class ShoppingListState {
   final List<ShoppingItem> items;
