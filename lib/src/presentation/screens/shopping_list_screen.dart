@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/notifiers/shopping_list_notifier.dart';
 import '../widgets/add_item_form.dart';
+import 'dart:developer';
 
 class ShoppingListScreen extends ConsumerStatefulWidget {
   const ShoppingListScreen({super.key});
@@ -17,6 +18,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) {
+        log('Iniciando carregamento dos itens na inicialização do widget.');
         ref.read(shoppingListProvider.notifier).loadItems();
       },
     );
@@ -25,6 +27,8 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   @override
   Widget build(BuildContext context) {
     final shoppingList = ref.watch(shoppingListProvider);
+
+    log('Reconstruindo tela. Total de itens no estado: ${shoppingList.length}');
 
     return Scaffold(
       appBar: AppBar(
@@ -48,6 +52,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                       itemCount: shoppingList.length,
                       itemBuilder: (context, index) {
                         final item = shoppingList[index];
+                        log('Exibindo item: ${item.name} (ID: ${item.id})');
                         return Card(
                           child: ListTile(
                             title: Text(item.name),
@@ -82,6 +87,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                         : Colors.grey,
                                   ),
                                   onPressed: () {
+                                    log('Clicando no botão para alternar status de urgência do item: ${item.name}');
                                     ref
                                         .read(shoppingListProvider.notifier)
                                         .toggleUrgentStatus(item);
@@ -90,6 +96,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.check),
                                   onPressed: () {
+                                    log('Clicando no botão para marcar item como comprado: ${item.name}');
                                     ref
                                         .read(shoppingListProvider.notifier)
                                         .markAsPurchased(item);
