@@ -40,23 +40,23 @@ class ShoppingListNotifier extends StateNotifier<ShoppingListState> {
     _loadItems();
   }
 
-  void addItem(ShoppingItem item) async {
+  Future<void> addItem(ShoppingItem item) async {
     await DatabaseHelper().addItem(item);
     _loadItems();
   }
 
-  void removeItem(ShoppingItem item) async {
+  Future<void> removeItem(ShoppingItem item) async {
     await DatabaseHelper().deleteItem(item.id!);
     _loadItems();
   }
 
-  void toggleUrgentStatus(ShoppingItem item) async {
+  Future<void> toggleUrgentStatus(ShoppingItem item) async {
     final updatedItem = item.toggleUrgent();
     await DatabaseHelper().updateItem(updatedItem);
     _loadItems();
   }
 
-  void incrementPurchaseCount(ShoppingItem item) async {
+  Future<void> incrementPurchaseCount(ShoppingItem item) async {
     final updatedItem = item.incrementPurchaseCount();
     await DatabaseHelper().updateItem(updatedItem);
     await DatabaseHelper().addPurchaseHistory(item.name);
