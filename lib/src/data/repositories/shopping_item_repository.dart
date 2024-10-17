@@ -39,12 +39,11 @@ class ShoppingItemRepository {
     );
   }
 
-  Future<void> updateItem(ShoppingItem item) async {
+  Future<int> updateItem(ShoppingItem item) async {
     final db = await _databaseHelper.database;
-    await db.update(
+    return await db.update(
       'shopping_items',
       {
-        'id': item.id,
         'name': item.name,
         'category': item.category,
         'isUrgent': item.isUrgent ? 1 : 0,
@@ -52,17 +51,34 @@ class ShoppingItemRepository {
         'price': item.price ?? 0.0,
         'priceType': item.priceType,
       },
-      where: 'name = ?',
-      whereArgs: [item.name],
+      where: 'id = ?',
+      whereArgs: [item.id],
     );
   }
 
-  Future<void> removeItem(int id) async {
+  Future<int> removeItem(int id) async {
     final db = await _databaseHelper.database;
-    await db.delete(
+    return await db.delete(
       'shopping_items',
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<int> addPurchaseHistory(String itemName) async {
+    final db = await _databaseHelper.database;
+    return await db.insert(
+      'purchase_history',
+      {
+        'itemName': itemName,
+        'datePurchased': DateTime.now().toIso8601String(),
+      },
+    );
+  }
+
+  Future<List<String>> getPurchaseHistory() async {
+    final db = await _databaseHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query('purchase_history');
+    return maps.map((map) => map['itemName'] as String).toList();
   }
 }
