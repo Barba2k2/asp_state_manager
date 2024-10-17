@@ -51,8 +51,9 @@ class DatabaseHelper {
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-          await db
-              .execute('ALTER TABLE shopping_items ADD COLUMN priceType TEXT');
+          await db.execute(
+            'ALTER TABLE shopping_items ADD COLUMN priceType TEXT',
+          );
         }
       },
     );
@@ -60,30 +61,37 @@ class DatabaseHelper {
 
   Future<int> addItem(ShoppingItem item) async {
     final db = await database;
-    return await db.insert('shopping_items', {
-      'name': item.name,
-      'category': item.category,
-      'isUrgent': item.isUrgent ? 1 : 0,
-      'purchaseCount': item.purchaseCount,
-      'price': item.price ?? 0.0,
-      'priceType': item.priceType,
-    });
+    return await db.insert(
+      'shopping_items',
+      {
+        'name': item.name,
+        'category': item.category,
+        'isUrgent': item.isUrgent ? 1 : 0,
+        'purchaseCount': item.purchaseCount,
+        'price': item.price ?? 0.0,
+        'priceType': item.priceType,
+      },
+    );
   }
 
   Future<List<ShoppingItem>> getItems() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('shopping_items');
 
-    return List.generate(maps.length, (i) {
-      return ShoppingItem(
-        name: maps[i]['name'],
-        category: maps[i]['category'],
-        isUrgent: maps[i]['isUrgent'] == 1,
-        purchaseCount: maps[i]['purchaseCount'],
-        price: maps[i]['price'],
-        priceType: maps[i]['priceType'],
-      );
-    });
+    return List.generate(
+      maps.length,
+      (i) {
+        return ShoppingItem(
+          id: maps[i]['id'],
+          name: maps[i]['name'],
+          category: maps[i]['category'],
+          isUrgent: maps[i]['isUrgent'] == 1,
+          purchaseCount: maps[i]['purchaseCount'],
+          price: maps[i]['price'],
+          priceType: maps[i]['priceType'],
+        );
+      },
+    );
   }
 
   Future<int> updateItem(ShoppingItem item) async {
@@ -98,17 +106,17 @@ class DatabaseHelper {
         'price': item.price ?? 0.0,
         'priceType': item.priceType,
       },
-      where: 'name = ?',
-      whereArgs: [item.name],
+      where: 'id = ?',
+      whereArgs: [item.id],
     );
   }
 
-  Future<int> deleteItem(String name) async {
+  Future<int> deleteItem(int id) async {
     final db = await database;
     return await db.delete(
       'shopping_items',
-      where: 'name = ?',
-      whereArgs: [name],
+      where: 'id = ?',
+      whereArgs: [id],
     );
   }
 
