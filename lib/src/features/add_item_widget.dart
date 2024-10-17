@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../entities/shopping_item_entitie.dart';
+import '../domain/entities/shopping_item.dart';
 import '../features/shopping/state/shopping_list_state.dart';
 
 class AddItemWidget extends ConsumerStatefulWidget {
