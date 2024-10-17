@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/shopping_item.dart';
@@ -36,37 +37,43 @@ class _AddItemFormState extends ConsumerState<AddItemForm> {
         DropdownButton<String>(
           value: selectedCategory,
           items: ['Hortifruti', 'Laticínios', 'Limpeza', 'Outros']
-              .map((category) => DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  ))
+              .map(
+                (category) => DropdownMenuItem(
+                  value: category,
+                  child: Text(category),
+                ),
+              )
               .toList(),
           onChanged: (value) {
             if (value != null) {
               setState(() {
                 selectedCategory = value;
               });
+              log('Categoria selecionada: $selectedCategory');
             }
           },
         ),
         DropdownButton<String>(
           value: selectedPriceType,
           items: ['Unidade', 'Quilo', 'Bandeja', 'Litro']
-              .map((priceType) => DropdownMenuItem(
-                    value: priceType,
-                    child: Text(priceType),
-                  ))
+              .map(
+                (priceType) => DropdownMenuItem(
+                  value: priceType,
+                  child: Text(priceType),
+                ),
+              )
               .toList(),
           onChanged: (value) {
             if (value != null) {
               setState(() {
                 selectedPriceType = value;
               });
+              log('Tipo de preço selecionado: $selectedPriceType');
             }
           },
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             final newItemName = itemController.text.trim();
             final newItemPrice =
                 double.tryParse(priceController.text.trim()) ?? 0.0;
@@ -78,13 +85,12 @@ class _AddItemFormState extends ConsumerState<AddItemForm> {
                 price: newItemPrice,
                 priceType: selectedPriceType,
               );
-              ref.read(shoppingListProvider.notifier).addItem(newItem);
+              log('Tentando adicionar item: ${newItem.name}, Preço: ${newItem.price}, Categoria: ${newItem.category}, Tipo de Preço: ${newItem.priceType}');
+              await ref.read(shoppingListProvider.notifier).addItem(newItem);
+              log('Item adicionado com sucesso e estado deve ser atualizado agora.');
+
               itemController.clear();
               priceController.clear();
-              setState(() {
-                selectedCategory = 'Hortifruti';
-                selectedPriceType = 'Unidade';
-              });
             }
           },
           child: const Text('Adicionar Item'),
