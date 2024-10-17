@@ -5,66 +5,95 @@ import '../../data/repositories/shopping_item_repository.dart';
 import '../../domain/entities/shopping_item.dart';
 
 class ShoppingListNotifier extends StateNotifier<List<ShoppingItem>> {
-  ShoppingListNotifier(ShoppingItemRepository repository) : super([]) {
+  final ShoppingItemRepository _repository;
+
+  ShoppingListNotifier(this._repository) : super([]) {
     loadItems();
   }
 
-  void addItem(ShoppingItem item) async {
+  Future<void> addItem(ShoppingItem item) async {
     try {
-      await DatabaseHelper().addItem(item);
-      loadItems();
+      log('Adicionando item ao banco de dados: ${item.name}');
+      final id = await DatabaseHelper().addItem(item);
+      final newItem = item.copyWith(id: id);
+      state = [...state, newItem];
+      log('Item adicionado ao estado. Total de itens: ${state.length}');
     } catch (e) {
-      log('Error adding item: $e');
-    }
-  }
-
-  void removeItem(ShoppingItem item) async {
-    try {
-      await DatabaseHelper().deleteItem(item.id!);
-      loadItems();
-    } catch (e) {
-      log('Error removing item: $e');
-    }
-  }
-
-  void toggleUrgentStatus(ShoppingItem item) async {
-    try {
-      final updatedItem = item.toggleUrgent();
-      await DatabaseHelper().updateItem(updatedItem);
-      loadItems();
-    } catch (e) {
-      log('Error toggling urgent status: $e');
-    }
-  }
-
-  void incrementPurchaseCount(ShoppingItem item) async {
-    try {
-      final updatedItem = item.incrementPurchaseCount();
-      await DatabaseHelper().updateItem(updatedItem);
-      await DatabaseHelper().addPurchaseHistory(item.name);
-      loadItems();
-    } catch (e) {
-      log('Error incrementing purchase count: $e');
-    }
-  }
-
-  void markAsPurchased(ShoppingItem item) async {
-    try {
-      final updatedItem = item.incrementPurchaseCount();
-      await DatabaseHelper().updateItem(updatedItem);
-      await DatabaseHelper().addPurchaseHistory(item.name);
-      loadItems();
-    } catch (e) {
-      log('Error marking item as purchased: $e');
+      log('Erro ao adicionar item: $e');
     }
   }
 
   Future<void> loadItems() async {
     try {
-      final items = await DatabaseHelper().getItems();
+      log('Carregando itens do banco de dados...');
+      final items = await _repository.getItems();
+      log('Itens carregados do banco de dados: ${items.length} itens encontrados');
       state = items;
+      log('Estado atualizado após carregar itens. Total de itens no estado: ${state.length}');
     } catch (e) {
-      log('Error loading items: $e');
+      log('Erro ao carregar itens: $e');
+    }
+  }
+
+  Future<void> removeItem(ShoppingItem item) async {
+    try {
+      log('Removendo item: ${item.name} (ID: ${item.id})');
+      await _repository.removeItem(item.id!);
+      state = state
+          .where(
+            (existingItem) => existingItem.id != item.id,
+          )
+          .toList();
+      log('Item removido do estado. Total de itens: ${state.length}');
+    } catch (e) {
+      log('Erro ao remover item: $e');
+    }
+  }
+
+  Future<void> toggleUrgentStatus(ShoppingItem item) async {
+    try {
+      log('Alternando status de urgência do item: ${item.name}');
+      final updatedItem = item.toggleUrgent();
+      await _repository.updateItem(updatedItem);
+      state = [
+        for (final i in state)
+          if (i.id == updatedItem.id) updatedItem else i,
+      ];
+      log('Status de urgência alterado no estado.');
+    } catch (e) {
+      log('Erro ao alternar status de urgência: $e');
+    }
+  }
+
+  Future<void> incrementPurchaseCount(ShoppingItem item) async {
+    try {
+      log('Incrementando contagem de compra do item: ${item.name}');
+      final updatedItem = item.incrementPurchaseCount();
+      await _repository.updateItem(updatedItem);
+      await _repository.addPurchaseHistory(item.name);
+      state = [
+        for (final i in state)
+          if (i.id == updatedItem.id) updatedItem else i,
+      ];
+      log('Contagem de compra incrementada no estado.');
+    } catch (e) {
+      log('Erro ao incrementar contagem de compra: $e');
+    }
+  }
+
+  Future<void> markAsPurchased(ShoppingItem item) async {
+    try {
+      log('Marcando item como comprado: ${item.name}');
+      final updatedItem = item.incrementPurchaseCount();
+      await _repository.updateItem(updatedItem);
+      await _repository.addPurchaseHistory(item.name);
+      state = [
+        for (final i in state)
+          if (i.id == updatedItem.id) updatedItem else i,
+      ];
+      log('Item marcado como comprado no estado.');
+    } catch (e) {
+      log('Erro ao marcar item como comprado: $e');
     }
   }
 }
