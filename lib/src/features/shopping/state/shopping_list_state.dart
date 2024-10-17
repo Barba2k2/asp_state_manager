@@ -46,7 +46,7 @@ class ShoppingListNotifier extends StateNotifier<ShoppingListState> {
   }
 
   void removeItem(ShoppingItem item) async {
-    await DatabaseHelper().deleteItem(item.name);
+    await DatabaseHelper().deleteItem(item.id!);
     _loadItems();
   }
 
