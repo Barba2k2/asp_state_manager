@@ -28,8 +28,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   Widget build(BuildContext context) {
     final shoppingList = ref.watch(shoppingListProvider);
 
-    log('Reconstruindo tela. Total de itens no estado: ${shoppingList.length}');
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lista de Compras Inteligente'),
@@ -52,7 +50,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                       itemCount: shoppingList.length,
                       itemBuilder: (context, index) {
                         final item = shoppingList[index];
-                        log('Exibindo item: ${item.name} (ID: ${item.id})');
                         return Card(
                           child: ListTile(
                             title: Text(item.name),
@@ -87,7 +84,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                         : Colors.grey,
                                   ),
                                   onPressed: () {
-                                    log('Clicando no botão para alternar status de urgência do item: ${item.name}');
                                     ref
                                         .read(shoppingListProvider.notifier)
                                         .toggleUrgentStatus(item);
@@ -96,7 +92,6 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.check),
                                   onPressed: () {
-                                    log('Clicando no botão para marcar item como comprado: ${item.name}');
                                     ref
                                         .read(shoppingListProvider.notifier)
                                         .markAsPurchased(item);
