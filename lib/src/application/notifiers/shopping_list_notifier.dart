@@ -1,76 +1,78 @@
 import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/datasources/database_helper.dart';
 import '../../data/repositories/shopping_item_repository.dart';
 import '../../domain/entities/shopping_item.dart';
 
 class ShoppingListNotifier extends StateNotifier<List<ShoppingItem>> {
-  final ShoppingItemRepository _repository;
-
-  ShoppingListNotifier(this._repository) : super([]) {
+  ShoppingListNotifier(ShoppingItemRepository repository) : super([]) {
     loadItems();
   }
 
-  Future<void> addItem(ShoppingItem item) async {
+  void addItem(ShoppingItem item) async {
     try {
-      final id = await _repository.addItem(item);
-      final newItem = item.copyWith(id: id);
-      state = [...state, newItem];
+      await DatabaseHelper().addItem(item);
+      loadItems();
     } catch (e) {
-      log('Erro ao adicionar item: $e');
+      log('Error adding item: $e');
+    }
+  }
+
+  void removeItem(ShoppingItem item) async {
+    try {
+      await DatabaseHelper().deleteItem(item.id!);
+      loadItems();
+    } catch (e) {
+      log('Error removing item: $e');
+    }
+  }
+
+  void toggleUrgentStatus(ShoppingItem item) async {
+    try {
+      final updatedItem = item.toggleUrgent();
+      await DatabaseHelper().updateItem(updatedItem);
+      loadItems();
+    } catch (e) {
+      log('Error toggling urgent status: $e');
+    }
+  }
+
+  void incrementPurchaseCount(ShoppingItem item) async {
+    try {
+      final updatedItem = item.incrementPurchaseCount();
+      await DatabaseHelper().updateItem(updatedItem);
+      await DatabaseHelper().addPurchaseHistory(item.name);
+      loadItems();
+    } catch (e) {
+      log('Error incrementing purchase count: $e');
+    }
+  }
+
+  void markAsPurchased(ShoppingItem item) async {
+    try {
+      final updatedItem = item.incrementPurchaseCount();
+      await DatabaseHelper().updateItem(updatedItem);
+      await DatabaseHelper().addPurchaseHistory(item.name);
+      loadItems();
+    } catch (e) {
+      log('Error marking item as purchased: $e');
     }
   }
 
   Future<void> loadItems() async {
     try {
-      final items = await _repository.getItems();
+      final items = await DatabaseHelper().getItems();
       state = items;
     } catch (e) {
-      log('Erro ao carregar itens: $e');
-    }
-  }
-
-  Future<void> updateItem(ShoppingItem updatedItem) async {
-    try {
-      await _repository.updateItem(updatedItem);
-      state = [
-        for (final item in state)
-          if (item.id == updatedItem.id) updatedItem else item,
-      ];
-    } catch (e) {
-      log('Erro ao atualizar item: $e');
-    }
-  }
-
-  Future<void> removeItem(int id) async {
-    try {
-      await _repository.removeItem(id);
-      state = state.where((item) => item.id != id).toList();
-    } catch (e) {
-      log('Erro ao remover item: $e');
-    }
-  }
-
-  Future<void> toggleUrgentStatus(ShoppingItem item) async {
-    try {
-      final updatedItem = item.toggleUrgent();
-      await updateItem(updatedItem);
-    } catch (e) {
-      log('Erro ao alterar status de urgência: $e');
-    }
-  }
-
-  Future<void> incrementPurchaseCount(ShoppingItem item) async {
-    try {
-      final updatedItem = item.incrementPurchaseCount();
-      await updateItem(updatedItem);
-    } catch (e) {
-      log('Erro ao incrementar contagem de compra: $e');
+      log('Error loading items: $e');
     }
   }
 }
 
 final shoppingListProvider =
-    StateNotifierProvider<ShoppingListNotifier, List<ShoppingItem>>((ref) {
-  final repository = ShoppingItemRepository();
-  return ShoppingListNotifier(repository);
-});
+    StateNotifierProvider<ShoppingListNotifier, List<ShoppingItem>>(
+  (ref) {
+    final repository = ShoppingItemRepository();
+    return ShoppingListNotifier(repository);
+  },
+);
