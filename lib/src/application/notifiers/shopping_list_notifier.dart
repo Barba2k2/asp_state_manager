@@ -1,6 +1,7 @@
 import 'dart:developer';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/datasources/database_helper.dart';
+
 import '../../data/repositories/shopping_item_repository.dart';
 import '../../domain/entities/shopping_item.dart';
 
@@ -13,8 +14,10 @@ class ShoppingListNotifier extends StateNotifier<List<ShoppingItem>> {
 
   Future<void> addItem(ShoppingItem item) async {
     try {
-      log('Adicionando item ao banco de dados: ${item.name}');
-      final id = await DatabaseHelper().addItem(item);
+      log('Tentando adicionar item ao banco de dados: ${item.name}');
+      final id = await _repository.addItem(item);
+      log('Item adicionado ao banco de dados com ID: $id');
+
       final newItem = item.copyWith(id: id);
       state = [...state, newItem];
       log('Item adicionado ao estado. Total de itens: ${state.length}');
@@ -39,11 +42,8 @@ class ShoppingListNotifier extends StateNotifier<List<ShoppingItem>> {
     try {
       log('Removendo item: ${item.name} (ID: ${item.id})');
       await _repository.removeItem(item.id!);
-      state = state
-          .where(
-            (existingItem) => existingItem.id != item.id,
-          )
-          .toList();
+      state =
+          state.where((existingItem) => existingItem.id != item.id).toList();
       log('Item removido do estado. Total de itens: ${state.length}');
     } catch (e) {
       log('Erro ao remover item: $e');
