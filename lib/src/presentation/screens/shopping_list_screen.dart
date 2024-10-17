@@ -4,11 +4,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/notifiers/shopping_list_notifier.dart';
 import '../widgets/add_item_form.dart';
 
-class ShoppingListScreen extends ConsumerWidget {
+class ShoppingListScreen extends ConsumerStatefulWidget {
   const ShoppingListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShoppingListScreen> createState() => _ShoppingListScreenState();
+}
+
+class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        ref.read(shoppingListProvider.notifier).loadItems();
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final shoppingList = ref.watch(shoppingListProvider);
 
     return Scaffold(
@@ -22,32 +37,70 @@ class ShoppingListScreen extends ConsumerWidget {
             const AddItemForm(),
             const SizedBox(height: 10),
             Expanded(
-              child: ListView.builder(
-                itemCount: shoppingList.length,
-                itemBuilder: (context, index) {
-                  final item = shoppingList[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(item.name),
-                      subtitle: Text(
-                          'Categoria: ${item.category}, Preço: R\$ ${item.price?.toStringAsFixed(2) ?? ''}, Tipo: ${item.priceType}'),
-                      trailing: IconButton(
-                        icon: Icon(
-                          item.isUrgent
-                              ? Icons.warning
-                              : Icons.warning_outlined,
-                          color: item.isUrgent ? Colors.red : Colors.grey,
-                        ),
-                        onPressed: () {
-                          ref
-                              .read(shoppingListProvider.notifier)
-                              .toggleUrgentStatus(item);
-                        },
+              child: shoppingList.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Nenhum item na lista. Adicione um novo item!',
+                        style: TextStyle(fontSize: 18),
                       ),
+                    )
+                  : ListView.builder(
+                      itemCount: shoppingList.length,
+                      itemBuilder: (context, index) {
+                        final item = shoppingList[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(item.name),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Categoria: ${item.category}'),
+                                Text(
+                                  'Preço: R\$ ${item.price?.toStringAsFixed(2) ?? ''}, Tipo: ${item.priceType}',
+                                ),
+                                Text('Comprado: ${item.purchaseCount} vezes'),
+                                if (item.isUrgent)
+                                  const Text(
+                                    'Urgente',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    item.isUrgent
+                                        ? Icons.warning
+                                        : Icons.warning_outlined,
+                                    color: item.isUrgent
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    ref
+                                        .read(shoppingListProvider.notifier)
+                                        .toggleUrgentStatus(item);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.check),
+                                  onPressed: () {
+                                    ref
+                                        .read(shoppingListProvider.notifier)
+                                        .markAsPurchased(item);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
