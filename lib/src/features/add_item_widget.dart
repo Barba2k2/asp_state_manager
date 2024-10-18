@@ -3,41 +3,41 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/entities/shopping_item.dart';
-import '../features/shopping/state/shopping_list_state.dart';
+import '../application/notifiers/shopping_list_notifier.dart';
 
 class AddItemWidget extends ConsumerStatefulWidget {
   const AddItemWidget({super.key});
 
   @override
-  _AddItemWidgetState createState() => _AddItemWidgetState();
+  ConsumerState<AddItemWidget> createState() => _AddItemWidgetState();
 }
 
 class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
-  TextEditingController itemController = TextEditingController();
-  TextEditingController priceController = TextEditingController();
-  String selectedCategory = 'Hortifruti';
-  String selectedPriceType = 'Unidade';
+  final _itemController = TextEditingController();
+  final _priceController = TextEditingController();
+  var selectedCategory = 'Hortifruti';
+  var selectedPriceType = 'Unidade';
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextField(
-          controller: itemController,
+          controller: _itemController,
           decoration: const InputDecoration(
             labelText: 'Novo item',
           ),
         ),
         TextField(
-          controller: priceController,
+          controller: _priceController,
           decoration: const InputDecoration(
             labelText: 'Preço do Item',
           ),
           keyboardType: TextInputType.number,
         ),
-        DropdownButton<String>(
+        DropdownButton(
           value: selectedCategory,
-          items: ['Hortifruti', 'Laticínios', 'Limpeza', 'Outros']
+          items: ['Hortifruti', 'Laticínios', 'Limpeza', 'Bebida', 'Outros']
               .map(
                 (category) => DropdownMenuItem(
                   value: category,
@@ -53,9 +53,9 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
             }
           },
         ),
-        DropdownButton<String>(
+        DropdownButton(
           value: selectedPriceType,
-          items: ['Unidade', 'Quilo', 'Bandeja', 'Litro']
+          items: ['Unidade', 'Quilo (Kg)', 'Bandeja', 'Litro']
               .map(
                 (priceType) => DropdownMenuItem(
                   value: priceType,
@@ -64,7 +64,7 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
               )
               .toList(),
           onChanged: (value) {
-            log('PriceL ${priceController.toString()}');
+            log('Price: ${_priceController.toString()}');
             if (value != null) {
               setState(() {
                 selectedPriceType = value;
@@ -73,10 +73,10 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
           },
         ),
         ElevatedButton(
-          onPressed: () {
-            final newItemName = itemController.text.trim();
+          onPressed: () async {
+            final newItemName = _itemController.text.trim();
             final newItemPrice =
-                double.tryParse(priceController.text.trim()) ?? 0.0;
+                double.tryParse(_priceController.text.trim()) ?? 0.0;
 
             if (newItemName.isNotEmpty) {
               final newItem = ShoppingItem(
@@ -85,9 +85,12 @@ class _AddItemWidgetState extends ConsumerState<AddItemWidget> {
                 price: newItemPrice,
                 priceType: selectedPriceType,
               );
-              ref.read(shoppingListProvider.notifier).addItem(newItem);
-              itemController.clear();
-              priceController.clear();
+              await ref.read(shoppingListProvider.notifier).addItem(newItem);
+              log('Item adicionado: $newItemName');
+
+              // Limpar campos e resetar valores após adicionar com sucesso
+              _itemController.clear();
+              _priceController.clear();
               setState(() {
                 selectedCategory = 'Hortifruti';
                 selectedPriceType = 'Unidade';
