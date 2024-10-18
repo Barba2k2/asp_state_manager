@@ -27,6 +27,7 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
   @override
   Widget build(BuildContext context) {
     final shoppingList = ref.watch(shoppingListProvider);
+    log('Construindo tela com ${shoppingList.length} itens');
 
     return Scaffold(
       appBar: AppBar(
@@ -52,14 +53,16 @@ class _ShoppingListScreenState extends ConsumerState<ShoppingListScreen> {
                         final item = shoppingList[index];
                         return Card(
                           child: ListTile(
+                            contentPadding: const EdgeInsets.all(10),
                             title: Text(item.name),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Categoria: ${item.category}'),
                                 Text(
-                                  'Preço: R\$ ${item.price?.toStringAsFixed(2) ?? ''}, Tipo: ${item.priceType}',
+                                  'Preço: R\$ ${item.price?.toStringAsFixed(2) ?? ''}',
                                 ),
+                                Text('Tipo: ${item.priceType}'),
                                 Text('Comprado: ${item.purchaseCount} vezes'),
                                 if (item.isUrgent)
                                   const Text(
